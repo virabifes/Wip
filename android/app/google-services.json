@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "34251951178",
+    "project_id": "basedados-wip",
+    "storage_bucket": "basedados-wip.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:34251951178:android:7897e008d7e60aee08aab3",
+        "android_client_info": {
+          "package_name": "com.example.wip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCY6ld4oJ7nVAOtrRfshWnPfmdXGtVNTyc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
