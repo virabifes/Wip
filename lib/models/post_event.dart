@@ -11,8 +11,11 @@ class Event {
   final List<String> imageUrls;
   final String creatorId;
   final String creatorName;
-  final String? location; // Defined as optional
+  final String? location;
   final DateTime timestamp;
+  final String? email; // Novo campo
+  final String? phone; // Novo campo
+  final bool isPublic; // Novo campo
 
   Event({
     required this.id,
@@ -27,10 +30,31 @@ class Event {
     required this.creatorName,
     this.location,
     required this.timestamp,
+    this.email, // Novo campo
+    this.phone, // Novo campo
+    required this.isPublic, // Novo campo
   });
 
   factory Event.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    Map<String, dynamic>? data = doc.data() as Map<String, dynamic>?;
+
+    if (data == null) {
+      // Caso não haja dados, retorne um objeto Event com valores padrão
+      return Event(
+        id: doc.id,
+        name: 'Unknown',
+        description: '',
+        date: DateTime.now(),
+        isFree: false,
+        price: 0,
+        maxAttendees: 0,
+        imageUrls: [],
+        creatorId: '',
+        creatorName: 'N/A',
+        timestamp: DateTime.now(),
+        isPublic: false, // Valor padrão
+      );
+    }
 
     DateTime parseDate(dynamic value) {
       if (value is Timestamp) {
@@ -46,7 +70,7 @@ class Event {
       id: doc.id,
       name: data['name'] ?? 'Unknown',
       description: data['description'] ?? '',
-      date: parseDate(data['date']),
+      date: parseDate(data['date'] ?? DateTime.now()),
       isFree: data['isFree'] ?? false,
       price: (data['price'] ?? 0).toDouble(),
       maxAttendees: data['maxAttendees'] ?? 0,
@@ -54,11 +78,14 @@ class Event {
       creatorId: data['creatorId'] ?? '',
       creatorName: data['creatorName'] ?? 'N/A',
       location: data['location'],
-      timestamp: parseDate(data['timestamp']),
+      timestamp: parseDate(data['timestamp'] ?? DateTime.now()),
+      email: data['email'],
+      phone: data['phone'],
+      isPublic: data['isPublic'] ?? false, // Novo campo
     );
   }
 
-  String get title => name; // Corrected the getter to return the name instead of null
+  String get title => name;
 
   Map<String, dynamic> toMap() {
     return {
@@ -71,8 +98,11 @@ class Event {
       'imageUrls': imageUrls,
       'creatorId': creatorId,
       'creatorName': creatorName,
-      'location': location ?? 'Not specified', // Optional usage with a default value if null
+      'location': location ?? 'Not specified',
       'timestamp': Timestamp.fromDate(timestamp),
+      'email': email, // Novo campo
+      'phone': phone, // Novo campo
+      'isPublic': isPublic, // Novo campo
     };
   }
 }

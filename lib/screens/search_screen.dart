@@ -55,7 +55,7 @@ class _SearchScreenState extends State<SearchScreen> {
           controller: searchController,
           style: TextStyle(color: Colors.white),
           decoration: InputDecoration(
-            labelText: 'Procure pelo usuários...',
+            labelText: 'Procure pelo users...',
             labelStyle: TextStyle(color: Colors.white),
             prefixIcon: Icon(Icons.search, color: Colors.white),
             enabledBorder: UnderlineInputBorder(
@@ -150,6 +150,6 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildPlaceholderText() {
-    return Center(child: Text('Digite um nome de usuário para pesquisar usuários.'));
+    return Center(child: Text('Digite um nome de usuário para pesquisar user.'));
   }
 }

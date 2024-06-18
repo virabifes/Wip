@@ -10,8 +10,6 @@ import 'package:wip/screens/login_screen.dart';
 import 'package:wip/utils/colors.dart';
 import 'package:provider/provider.dart';
 
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);

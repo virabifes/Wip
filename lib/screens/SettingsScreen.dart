@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 
 class TelaConfiguracoes extends StatelessWidget {
   final String uid;
@@ -17,13 +18,6 @@ class TelaConfiguracoes extends StatelessWidget {
       body: ListView(
         padding: EdgeInsets.all(16.0),
         children: [
-          _buildTituloSecao(context, 'Editar Perfil'),
-          _buildItemLista(context, 'Alterar Nome de Usuário', Icons.person, () {
-            _navegarParaAlterarNome(context);
-          }),
-          _buildItemLista(context, 'Alterar Biografia', Icons.description, () {
-            _navegarParaAlterarBiografia(context);
-          }),
           SizedBox(height: 20),
           _buildTituloSecao(context, 'Configurações da Conta'),
           _buildItemLista(context, 'Alterar Senha', Icons.lock, () {
@@ -75,26 +69,8 @@ class TelaConfiguracoes extends StatelessWidget {
             color: Color(0xFF310E3E), // Cor do texto
           ),
         ),
-        leading: Icon(icone, color: Color(0xFF310E3E),), // Cor do ícone
+        leading: Icon(icone, color: Color(0xFF310E3E)), // Cor do ícone
         onTap: onTap,
-      ),
-    );
-  }
-
-  void _navegarParaAlterarNome(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TelaAlterarNome(uid: uid),
-      ),
-    );
-  }
-
-  void _navegarParaAlterarBiografia(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TelaAlterarBiografia(uid: uid),
       ),
     );
   }
@@ -139,8 +115,15 @@ class TelaConfiguracoes extends StatelessWidget {
 
   Future<void> _excluirConta(BuildContext context) async {
     try {
-      await FirebaseFirestore.instance.collection('usuarios').doc(uid).delete();
-      Navigator.pop(context); // Fechar diálogo
+      // Excluir o documento do usuário da coleção 'users'
+      await FirebaseFirestore.instance.collection('users').doc(uid).delete();
+      
+      // Deslogar o usuário
+      await auth.FirebaseAuth.instance.signOut();
+
+      // Fechar diálogo
+      Navigator.pop(context);
+      
       // Adicionar lógica adicional, se necessário
     } catch (error) {
       print("Erro ao excluir conta: $error");
@@ -151,92 +134,45 @@ class TelaConfiguracoes extends StatelessWidget {
   }
 }
 
-class TelaAlterarNome extends StatelessWidget {
-  final String uid;
-
-  const TelaAlterarNome({Key? key, required this.uid}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Alterar Nome de Usuário'),
-        backgroundColor: Color(0xFF310E3E), // Cor da barra de navegação
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Novo Nome de Usuário',
-              ),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                // Implementar lógica para salvar nome de usuário
-                Navigator.pop(context);
-              },
-              child: Text('Salvar'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Color(0xFF310E3E), // Cor do texto do botão
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TelaAlterarBiografia extends StatelessWidget {
-  final String uid;
-
-  const TelaAlterarBiografia({Key? key, required this.uid}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Alterar Biografia'),
-        backgroundColor: Color(0xFF310E3E), // Cor da barra de navegação
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Nova Biografia',
-              ),
-            ),
-            SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: () {
-                // Implementar lógica para salvar biografia
-                Navigator.pop(context);
-              },
-              child: Text('Salvar'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Color(0xFF310E3E), // Cor do texto do botão
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TelaAlterarSenha extends StatelessWidget {
+class TelaAlterarSenha extends StatefulWidget {
   final String uid;
 
   const TelaAlterarSenha({Key? key, required this.uid}) : super(key: key);
+
+  @override
+  _TelaAlterarSenhaState createState() => _TelaAlterarSenhaState();
+}
+
+class _TelaAlterarSenhaState extends State<TelaAlterarSenha> {
+  final TextEditingController _senhaAntigaController = TextEditingController();
+  final TextEditingController _novaSenhaController = TextEditingController();
+  final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;
+
+  Future<void> _alterarSenha() async {
+    try {
+      String email = _auth.currentUser!.email!;
+      String senhaAntiga = _senhaAntigaController.text.trim();
+      String novaSenha = _novaSenhaController.text.trim();
+
+      auth.UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: senhaAntiga,
+      );
+
+      if (userCredential.user != null) {
+        await userCredential.user!.updatePassword(novaSenha);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Senha atualizada com sucesso')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (error) {
+      print("Erro ao atualizar a senha: $error");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Falha ao atualizar senha. Por favor, tente novamente mais tarde.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -252,6 +188,7 @@ class TelaAlterarSenha extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
+              controller: _senhaAntigaController,
               decoration: InputDecoration(
                 labelText: 'Senha Antiga',
               ),
@@ -259,6 +196,7 @@ class TelaAlterarSenha extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             TextField(
+              controller: _novaSenhaController,
               decoration: InputDecoration(
                 labelText: 'Nova Senha',
               ),
@@ -266,10 +204,7 @@ class TelaAlterarSenha extends StatelessWidget {
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                // Implementar lógica para alterar senha
-                Navigator.pop(context);
-              },
+              onPressed: _alterarSenha,
               child: Text('Salvar'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white, backgroundColor: Color(0xFF310E3E), // Cor do texto do botão

@@ -49,7 +49,8 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
         centerTitle: false,
         title: SvgPicture.asset(
           'assets/logoWip.svg',
-          color: primaryColor,
+          // ignore: deprecated_member_use
+          color: Color.fromARGB(255, 0, 0, 0),
           height: 32,
         ),
         actions: _buildAppBarActions(),

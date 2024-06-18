@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:wip/screens/FollowerListScreen.dart';
+import 'package:wip/screens/FollowerListScreen1.dart';
 import 'package:wip/utils/colors.dart';
 import 'package:wip/utils/utils.dart';
 import 'package:wip/widgets/post_card.dart';
@@ -21,7 +21,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int followers = 0;
   int following = 0;
   bool isLoading = false;
-  bool isFollowing = false; // Definindo isFollowing como uma variável de estado
+  bool isFollowing = false;
 
   @override
   void initState() {
@@ -41,7 +41,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final postSnap = await FirebaseFirestore.instance
           .collection('posts')
-          .where('uid', isEqualTo: FirebaseAuth.instance.currentUser!.uid)
+          .where('uid', isEqualTo: widget.uid)
           .get();
 
       postLen = postSnap.docs.length;
@@ -49,7 +49,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       followers = userData['followers'].length;
       following = userData['following'].length;
 
-      // Defina isFollowing com base nos dados do usuário
       final currentUserUid = FirebaseAuth.instance.currentUser!.uid;
       setState(() {
         isFollowing = userData['followers'].contains(currentUserUid);
@@ -74,40 +73,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: false,
         elevation: 0,
         actions: [
-          // Botão de seguir/deixar de seguir
           IconButton(
             icon: Icon(isFollowing ? Icons.person_remove : Icons.person_add),
             onPressed: () async {
               setState(() {
-                isFollowing = !isFollowing; // Alternar o estado de seguir/não seguir
+                isFollowing = !isFollowing;
                 if (isFollowing) {
-                  followers++; // Incrementar o número de seguidores se começarmos a seguir
+                  followers++;
                 } else {
-                  followers--; // Decrementar o número de seguidores se pararmos de seguir
+                  followers--;
                 }
               });
 
-              // Lógica para adicionar/remover o usuário da lista de seguidores
               if (isFollowing) {
-                // Adicionar o usuário à lista de seguidores
                 await FirebaseFirestore.instance
                     .collection('users')
                     .doc(widget.uid)
                     .update({'followers': FieldValue.arrayUnion([FirebaseAuth.instance.currentUser!.uid])});
 
-                // Atualizar o número de seguidores no perfil do usuário atual
                 await FirebaseFirestore.instance
                     .collection('users')
                     .doc(FirebaseAuth.instance.currentUser!.uid)
                     .update({'following': FieldValue.arrayUnion([widget.uid])});
               } else {
-                // Remover o usuário da lista de seguidores
                 await FirebaseFirestore.instance
                     .collection('users')
                     .doc(widget.uid)
                     .update({'followers': FieldValue.arrayRemove([FirebaseAuth.instance.currentUser!.uid])});
 
-                // Atualizar o número de seguidores no perfil do usuário atual
                 await FirebaseFirestore.instance
                     .collection('users')
                     .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -118,7 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-       body: isLoading
+      body: isLoading
           ? Center(
               child: CircularProgressIndicator(),
             )
@@ -171,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 SizedBox(height: 16),
                 Divider(),
-                FutureBuilder(
+                FutureBuilder<QuerySnapshot>(
                   future: FirebaseFirestore.instance
                       .collection('posts')
                       .where('uid', isEqualTo: widget.uid)
@@ -182,13 +175,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         child: CircularProgressIndicator(),
                       );
                     }
-
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Error: ${snapshot.error}'),
+                      );
+                    }
+                    final data = snapshot.data!;
                     return ListView.builder(
                       shrinkWrap: true,
                       physics: NeverScrollableScrollPhysics(),
-                      itemCount: (snapshot.data! as QuerySnapshot).docs.length,
+                      itemCount: data.docs.length,
                       itemBuilder: (context, index) {
-                        final snap = (snapshot.data! as QuerySnapshot).docs[index].data() as Map<String, dynamic>;
+                        final snap = data.docs[index].data() as Map<String, dynamic>;
                         return PostCard(
                           snap: snap,
                           borderRadius: BorderRadius.circular(15),
@@ -242,7 +240,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => FollowerListScreen(uid: widget.uid),
+        builder: (context) => FollowerListScreen1(uid: widget.uid),
       ),
     );
   }

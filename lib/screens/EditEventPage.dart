@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:wip/models/post_event.dart'; // Assume this é o caminho correto
-
+import 'package:wip/models/post_event.dart'; // Assume este caminho como correto
 class EditEventPage extends StatefulWidget {
   final Event event;
 
@@ -17,7 +16,10 @@ class _EditEventPageState extends State<EditEventPage> {
   late TextEditingController _descriptionController;
   late TextEditingController _locationController;
   late TextEditingController _priceController;
+  late TextEditingController _emailController; // New controller
+  late TextEditingController _phoneController; // New controller
   late bool _isFree;
+  late bool _isPublic; // New boolean
   late DateTime _selectedDate;
 
   @override
@@ -27,8 +29,11 @@ class _EditEventPageState extends State<EditEventPage> {
     _descriptionController = TextEditingController(text: widget.event.description);
     _locationController = TextEditingController(text: widget.event.location);
     _priceController = TextEditingController(text: widget.event.isFree ? '0' : widget.event.price.toString());
+    _emailController = TextEditingController(text: widget.event.email ?? ''); // Initialize with event email
+    _phoneController = TextEditingController(text: widget.event.phone ?? ''); // Initialize with event phone
     _isFree = widget.event.isFree;
-    _selectedDate = widget.event.date; // Inicializa com a data atual do evento
+    _isPublic = widget.event.isPublic; // Initialize with event isPublic
+    _selectedDate = widget.event.date;
   }
 
   @override
@@ -37,6 +42,8 @@ class _EditEventPageState extends State<EditEventPage> {
     _descriptionController.dispose();
     _locationController.dispose();
     _priceController.dispose();
+    _emailController.dispose(); // Dispose controller
+    _phoneController.dispose(); // Dispose controller
     super.dispose();
   }
 
@@ -45,7 +52,7 @@ class _EditEventPageState extends State<EditEventPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Editar Evento'),
-        backgroundColor: Color(0xFF310E3E), // Cor de fundo da app bar
+        backgroundColor: Color(0xFF310E3E),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -54,11 +61,12 @@ class _EditEventPageState extends State<EditEventPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Name field
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Nome do Evento',
-                  labelStyle: TextStyle(color: Color(0xFF3DFFA2)), // Cor do texto do label
+                  labelStyle: TextStyle(color: Color(0xFF3DFFA2)),
                   enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.grey.shade300),
                     borderRadius: BorderRadius.circular(10.0),
@@ -68,7 +76,7 @@ class _EditEventPageState extends State<EditEventPage> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                style: TextStyle(fontSize: 18.0), // Melhora a fonte
+                style: TextStyle(fontSize: 18.0),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira um nome para o evento.';
@@ -77,6 +85,7 @@ class _EditEventPageState extends State<EditEventPage> {
                 },
               ),
               SizedBox(height: 16.0),
+              // Description field
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
@@ -91,9 +100,10 @@ class _EditEventPageState extends State<EditEventPage> {
                   ),
                 ),
                 maxLines: 3,
-                style: TextStyle(fontSize: 18.0), // Melhora a fonte
+                style: TextStyle(fontSize: 18.0),
               ),
               SizedBox(height: 16.0),
+              // Location field
               TextFormField(
                 controller: _locationController,
                 decoration: InputDecoration(
@@ -107,11 +117,76 @@ class _EditEventPageState extends State<EditEventPage> {
                     borderRadius: BorderRadius.circular(10.0),
                   ),
                 ),
-                style: TextStyle(fontSize: 18.0), // Melhora a fonte
+                style: TextStyle(fontSize: 18.0),
               ),
               SizedBox(height: 16.0),
+              // Date picker
+              Row(
+                children: [
+                  Text(
+                    'Data do Evento:',
+                    style: TextStyle(fontSize: 18.0),
+                  ),
+                  SizedBox(width: 10.0),
+                  TextButton(
+                    onPressed: () async {
+                      final selectedDate = await showDatePicker(
+                        context: context,
+                        initialDate: _selectedDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime(2100),
+                      );
+                      if (selectedDate != null) {
+                        setState(() {
+                          _selectedDate = selectedDate;
+                        });
+                      }
+                    },
+                    child: Text(
+                      '${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                      style: TextStyle(fontSize: 18.0, color: Colors.blue),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.0),
+              // Email field
+              TextFormField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  labelText: 'Email de Contato',
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFB921C9)),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                style: TextStyle(fontSize: 18.0),
+              ),
+              SizedBox(height: 16.0),
+              // Phone field
+              TextFormField(
+                controller: _phoneController,
+                decoration: InputDecoration(
+                  labelText: 'Número de Telefone',
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFFB921C9)),
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                style: TextStyle(fontSize: 18.0),
+              ),
+              SizedBox(height: 16.0),
+              // Is Free switch
               SwitchListTile(
-                title: Text('Evento Gratuito', style: TextStyle(fontSize: 18.0)), // Melhora a fonte
+                title: Text('Evento Gratuito', style: TextStyle(fontSize: 18.0)),
                 value: _isFree,
                 activeColor: Color(0xFFB921C9),
                 onChanged: (bool value) {
@@ -135,18 +210,19 @@ class _EditEventPageState extends State<EditEventPage> {
                     ),
                   ),
                   keyboardType: TextInputType.number,
-                  style: TextStyle(fontSize: 18.0), // Melhora a fonte
+                  style: TextStyle(fontSize: 18.0),
                 ),
               SizedBox(height: 16.0),
+              // Save button
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     saveEvent();
                   }
                 },
-                child: Text('Salvar Alterações', style: TextStyle(fontSize: 18.0)),
+                child: Text('Guardare Alterações', style: TextStyle(fontSize: 18.0)),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFB921C9), // Cor do botão
+                  backgroundColor: Color(0xFFB921C9),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0),
                   ),
@@ -169,12 +245,15 @@ class _EditEventPageState extends State<EditEventPage> {
         location: _locationController.text,
         isFree: _isFree,
         price: price,
-        date: _selectedDate, // Usa a data selecionada
+        date: _selectedDate,
         imageUrls: widget.event.imageUrls,
         maxAttendees: widget.event.maxAttendees,
         creatorId: widget.event.creatorId,
         creatorName: widget.event.creatorName,
         timestamp: DateTime.now(),
+        email: _emailController.text, // New email field
+        phone: _phoneController.text, // New phone field
+        isPublic: _isPublic, // New isPublic field
       );
 
       await FirebaseFirestore.instance
@@ -189,4 +268,3 @@ class _EditEventPageState extends State<EditEventPage> {
     }
   }
 }
-

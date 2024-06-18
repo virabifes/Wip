@@ -25,17 +25,9 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _bioController = TextEditingController();
   bool _isLoading = false;
   Uint8List? _image;
-  late ScrollController _scrollController;
-
-  @override
-  void initState() {
-    super.initState();
-    _scrollController = ScrollController();
-  }
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _usernameController.dispose();
@@ -44,22 +36,38 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   void signUpUser() async {
+    if (_image == null) {
+      showSnackBar(context, 'Por favor, selecione uma imagem');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
-    String res = await AuthMethods().signUpUser(
-        email: _emailController.text,
-        password: _passwordController.text,
-        username: _usernameController.text,
-        bio: _bioController.text,
-        file: _image!);
-
-    if (res == "success") {
+    // Verificar se o nome de usuário já está em uso
+    bool isUsernameTaken = await AuthMethods().isUsernameTaken(_usernameController.text);
+    if (isUsernameTaken) {
       setState(() {
         _isLoading = false;
       });
+      showSnackBar(context, 'Nome de usuário já está em uso');
+      return;
+    }
 
+    String res = await AuthMethods().signUpUser(
+      email: _emailController.text,
+      password: _passwordController.text,
+      username: _usernameController.text,
+      bio: _bioController.text,
+      file: _image!,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (res == "success") {
       if (context.mounted) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
@@ -71,10 +79,6 @@ class _SignupScreenState extends State<SignupScreen> {
         );
       }
     } else {
-      setState(() {
-        _isLoading = false;
-      });
-
       if (context.mounted) {
         showSnackBar(context, res);
       }
@@ -95,16 +99,16 @@ class _SignupScreenState extends State<SignupScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 60),
+                const SizedBox(height: 60),
                 SvgPicture.asset(
                   'assets/logoWip.svg',
                   height: 64,
                 ),
-                SizedBox(height: 48),
+                const SizedBox(height: 48),
                 Stack(
                   children: [
                     _image != null
@@ -113,10 +117,9 @@ class _SignupScreenState extends State<SignupScreen> {
                             backgroundImage: MemoryImage(_image!),
                             backgroundColor: Colors.red,
                           )
-                        : CircleAvatar(
+                        : const CircleAvatar(
                             radius: 64,
-                            backgroundImage: NetworkImage(
-                                'https://i.stack.imgur.com/l60Hf.png'),
+                            backgroundImage: NetworkImage('https://i.stack.imgur.com/l60Hf.png'),
                             backgroundColor: Colors.red,
                           ),
                     Positioned(
@@ -124,103 +127,79 @@ class _SignupScreenState extends State<SignupScreen> {
                       left: 80,
                       child: IconButton(
                         onPressed: selectImage,
-                        icon: Icon(Icons.add_a_photo),
+                        icon: const Icon(Icons.add_a_photo),
                       ),
                     )
                   ],
                 ),
-                SizedBox(height: 48),
+                const SizedBox(height: 48),
                 TextFieldInput(
-                  hintText: 'Username',
+                  hintText: 'Nome de usuário',
                   textInputType: TextInputType.text,
                   textEditingController: _usernameController,
-                  onSubmitted: (_) {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
+                  onSubmitted: (_) {},
                 ),
-                SizedBox(height: 22),
+                const SizedBox(height: 22),
                 TextFieldInput(
                   hintText: 'Email',
                   textInputType: TextInputType.emailAddress,
                   textEditingController: _emailController,
-                  onSubmitted: (_) {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
+                  onSubmitted: (_) {},
                 ),
-                SizedBox(height: 22),
+                const SizedBox(height: 22),
                 TextFieldInput(
-                  hintText: 'Password',
+                  hintText: 'Senha',
                   textInputType: TextInputType.text,
                   textEditingController: _passwordController,
                   isPass: true,
-                  onSubmitted: (_) {
-                    _scrollController.animateTo(
-                      _scrollController.position.maxScrollExtent,
-                      duration: Duration(milliseconds: 500),
-                      curve: Curves.easeInOut,
-                    );
-                  },
+                  onSubmitted: (_) {},
                 ),
-                SizedBox(height: 22),
+                const SizedBox(height: 22),
                 TextFieldInput(
                   hintText: 'Bio',
                   textInputType: TextInputType.text,
                   textEditingController: _bioController,
-                  onSubmitted: (_) {
-                    // Aqui você pode fazer algo específico quando a bio for submetida
-                  },
+                  onSubmitted: (_) {},
                 ),
-                SizedBox(height: 24),
+                const SizedBox(height: 24),
                 InkWell(
                   onTap: signUpUser,
                   child: Container(
                     width: double.infinity,
                     alignment: Alignment.center,
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    decoration: ShapeDecoration(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    decoration: const ShapeDecoration(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(4)),
                       ),
                       color: blueColor,
                     ),
                     child: !_isLoading
-                        ? Text(
-                            'Sign up',
-                          )
-                        : CircularProgressIndicator(
+                        ? const Text('Criar conta')
+                        : const CircularProgressIndicator(
                             color: primaryColor,
                           ),
                   ),
                 ),
-                SizedBox(height: 16),
-                Text(
+                const SizedBox(height: 16),
+                const Text(
                   'Todos os campos são obrigatórios',
                   style: TextStyle(
                     color: Colors.red,
                   ),
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Já tenho conta?',
-                    ),
+                    const Text('Já tem uma conta?'),
                     GestureDetector(
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => const LoginScreen(),
                         ),
                       ),
-                      child: Text(
+                      child: const Text(
                         ' Login.',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -229,7 +208,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: 48),
+                const SizedBox(height: 48),
               ],
             ),
           ),

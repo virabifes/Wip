@@ -7,14 +7,17 @@ import 'package:uuid/uuid.dart';
 class FireStoreMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Upload a post
+  // Método para postar um post
   Future<String> uploadPost(String description, Uint8List file, String uid,
       String username, String profImage) async {
-    String res = "Some error occurred";
+    String res = "Algum erro ocorreu";
     try {
+      // Faz upload da imagem para o Firebase Storage e obtém o URL da foto
       String photoUrl =
           await StorageMethods().uploadImageToStorage('posts', file, true);
-      String postId = const Uuid().v1(); // creates unique id based on time
+      // Cria um ID único para o post baseado no tempo
+      String postId = const Uuid().v1();
+      // Cria um objeto Post
       Post post = Post(
         description: description,
         uid: uid,
@@ -25,43 +28,46 @@ class FireStoreMethods {
         postUrl: photoUrl,
         profImage: profImage,
       );
+      // Adiciona o post ao Firestore
       await _firestore.collection('posts').doc(postId).set(post.toJson());
-      res = "success";
+      res = "sucesso";
     } catch (err) {
       res = err.toString();
     }
     return res;
   }
 
-  // Like a post
+  // Método para curtir um post
   Future<String> likePost(String postId, String uid, List likes) async {
-    String res = "Some error occurred";
+    String res = "Algum erro ocorreu";
     try {
       if (likes.contains(uid)) {
-        // if the likes list contains the user uid, we need to remove it
+        // Se a lista de curtidas contém o uid do usuário, remove o uid da lista
         await _firestore.collection('posts').doc(postId).update({
           'likes': FieldValue.arrayRemove([uid])
         });
       } else {
-        // else we need to add uid to the likes array
+        // Caso contrário, adiciona o uid à lista de curtidas
         await _firestore.collection('posts').doc(postId).update({
           'likes': FieldValue.arrayUnion([uid])
         });
       }
-      res = 'success';
+      res = 'sucesso';
     } catch (err) {
       res = err.toString();
     }
     return res;
   }
 
-  // Post a comment
+  // Método para postar comentários
   Future<String> postComment(String postId, String text, String uid,
       String name, String profilePic) async {
-    String res = "Some error occurred";
+    String res = "Algum erro ocorreu";
     try {
       if (text.isNotEmpty) {
+        // Se o texto não estiver vazio, cria um ID único para o comentário
         String commentId = const Uuid().v1();
+        // Adiciona o comentário ao Firestore
         await _firestore
             .collection('posts')
             .doc(postId)
@@ -75,9 +81,9 @@ class FireStoreMethods {
           'commentId': commentId,
           'datePublished': DateTime.now(),
         });
-        res = 'success';
+        res = 'sucesso';
       } else {
-        res = "Please enter text";
+        res = "Por favor, insira um texto";
       }
     } catch (err) {
       res = err.toString();
@@ -85,26 +91,30 @@ class FireStoreMethods {
     return res;
   }
 
-  // Delete a post
+  // Método para apagar um post
   Future<String> deletePost(String postId) async {
-    String res = "Some error occurred";
+    String res = "Algum erro ocorreu";
     try {
+      // Apaga o post do Firestore
       await _firestore.collection('posts').doc(postId).delete();
-      res = 'success';
+      res = 'sucesso';
     } catch (err) {
       res = err.toString();
     }
     return res;
   }
 
-  // Follow/Unfollow a user
+  // Método para seguir/deixar de seguir um usuário
   Future<void> followUser(String uid, String followId) async {
     try {
+      // Obtém o documento do usuário atual
       DocumentSnapshot snap =
           await _firestore.collection('users').doc(uid).get();
+      // Obtém a lista de seguindo do usuário
       List following = (snap.data()! as dynamic)['following'];
 
       if (following.contains(followId)) {
+        // Se a lista de seguindo contém o followId, remove o followId dos seguidores e do seguindo
         await _firestore.collection('users').doc(followId).update({
           'followers': FieldValue.arrayRemove([uid])
         });
@@ -113,6 +123,7 @@ class FireStoreMethods {
           'following': FieldValue.arrayRemove([followId])
         });
       } else {
+        // Caso contrário, adiciona o followId aos seguidores e ao seguindo
         await _firestore.collection('users').doc(followId).update({
           'followers': FieldValue.arrayUnion([uid])
         });
@@ -126,3 +137,4 @@ class FireStoreMethods {
     }
   }
 }
+

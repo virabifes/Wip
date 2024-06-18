@@ -8,7 +8,17 @@ class AuthMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // get user details
+  // Verificar se o nome de usuário já está em uso
+  Future<bool> isUsernameTaken(String username) async {
+    final QuerySnapshot result = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .get();
+    final List<DocumentSnapshot> documents = result.docs;
+    return documents.isNotEmpty;
+  }
+
+  // Obter detalhes do usuário
   Future<model.User> getUserDetails() async {
     User currentUser = _auth.currentUser!;
 
@@ -18,8 +28,7 @@ class AuthMethods {
     return model.User.fromSnap(documentSnapshot);
   }
 
-  // Signing Up User
-
+  // Registrar usuário
   Future<String> signUpUser({
     required String email,
     required String password,
@@ -27,23 +36,29 @@ class AuthMethods {
     required String bio,
     required Uint8List file,
   }) async {
-    String res = "Some error Occurred";
+    String res = "Ocorreu algum erro";
     try {
       if (email.isNotEmpty ||
           password.isNotEmpty ||
           username.isNotEmpty ||
           bio.isNotEmpty ||
-          // ignore: unnecessary_null_comparison
           file != null) {
-        // registering user in auth with email and password
+        // Verificar se o nome de usuário já está em uso
+        bool usernameExists = await isUsernameTaken(username);
+        if (usernameExists) {
+          return 'Nome de usuário já está em uso';
+        }
+
+        // Registrar usuário no Firebase Auth
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        String photoUrl =
-            await StorageMethods().uploadImageToStorage('profilePics', file, false);
+        // Fazer upload da imagem e obter a URL da imagem
+        String photoUrl = await StorageMethods().uploadImageToStorage('profilePics', file, false);
 
+        // Criar objeto User
         model.User user = model.User(
           username: username,
           uid: cred.user!.uid,
@@ -54,7 +69,7 @@ class AuthMethods {
           following: [],
         );
 
-        // adding user in our database
+        // Adicionar usuário ao Firestore
         await _firestore
             .collection("users")
             .doc(cred.user!.uid)
@@ -62,7 +77,7 @@ class AuthMethods {
 
         res = "success";
       } else {
-        res = "Please enter all the fields";
+        res = "Por favor, preencha todos os campos";
       }
     } catch (err) {
       return err.toString();
@@ -70,22 +85,22 @@ class AuthMethods {
     return res;
   }
 
-  // logging in user
+  // Método para login do usuário
   Future<String> loginUser({
     required String email,
     required String password,
   }) async {
-    String res = "Some error Occurred";
+    String res = "Ocorreu algum erro";
     try {
-      if (email.isNotEmpty || password.isNotEmpty) {
-        // logging in user with email and password
+      if (email.isNotEmpty && password.isNotEmpty) {
+        // Login do usuário com email e senha
         await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
         res = "success";
       } else {
-        res = "Please enter all the fields";
+        res = "Por favor, preencha todos os campos";
       }
     } catch (err) {
       return err.toString();
@@ -93,6 +108,7 @@ class AuthMethods {
     return res;
   }
 
+  // Método para logout do usuário
   Future<void> signOut() async {
     await _auth.signOut();
   }

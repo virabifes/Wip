@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:wip/utils/colors.dart';
 import 'package:provider/provider.dart';
 import 'package:wip/providers/user_provider.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,8 +21,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final TextEditingController _maxAttendeesController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _allowedUsersController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController(); // Novo campo
+  final TextEditingController _phoneController = TextEditingController(); // Novo campo
   final List<XFile> _selectedImages = [];
   bool _isFree = true;
+  bool _isPrivate = false;
 
   void showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -58,9 +61,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
       return;
     }
 
-    if (_nameController.text.isEmpty || 
-        _descriptionController.text.isEmpty || 
-        _dateController.text.isEmpty || 
+    if (_nameController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _dateController.text.isEmpty ||
         _locationController.text.isEmpty ||
         (_isFree == false && _priceController.text.isEmpty)) {
       showSnackBar(context, "Please fill in all fields");
@@ -82,9 +85,13 @@ class _AddEventScreenState extends State<AddEventScreen> {
         'maxAttendees': int.parse(_maxAttendeesController.text),
         'price': _isFree ? 0 : double.parse(_priceController.text),
         'isFree': _isFree,
+        'isPrivate': _isPrivate,
+        'allowedUsers': _isPrivate ? _allowedUsersController.text.split(',') : null,
         'creatorId': user.uid,
         'creatorName': user.username,
         'timestamp': FieldValue.serverTimestamp(),
+        'email': _emailController.text, // Novo campo
+        'phone': _phoneController.text, // Novo campo
       });
 
       if (_selectedImages.isNotEmpty) {
@@ -117,8 +124,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Adicionar Evento'),
-        backgroundColor: primaryColor,
+        title: Text('Adicionar Evento', style: TextStyle(color: Colors.white)),
+        backgroundColor: Color(0xFF310E3E),
       ),
       body: Center(
         child: isLoading
@@ -172,16 +179,40 @@ class _AddEventScreenState extends State<AddEventScreen> {
                           });
                         },
                       ),
+                      SwitchListTile(
+                        title: const Text('Evento Privado'),
+                        value: _isPrivate,
+                        onChanged: (bool value) {
+                          setState(() {
+                            _isPrivate = value;
+                          });
+                        },
+                      ),
                       if (!_isFree)
                         TextField(
                           controller: _priceController,
                           decoration: const InputDecoration(labelText: 'Preço'),
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         ),
+                      if (_isPrivate)
+                        TextField(
+                          controller: _allowedUsersController,
+                          decoration: const InputDecoration(labelText: 'Nomes de usuários permitidos a visualizar (separados por vírgula)'),
+                        ),
                       const SizedBox(height: 16.0),
                       TextField(
                         controller: _locationController,
                         decoration: const InputDecoration(labelText: 'Localização do Evento'),
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(labelText: 'Email de Contato'),
+                      ),
+                      const SizedBox(height: 16.0),
+                      TextField(
+                        controller: _phoneController,
+                        decoration: const InputDecoration(labelText: 'Número de Telefone'),
                       ),
                       const SizedBox(height: 16.0),
                       ElevatedButton(
@@ -212,11 +243,27 @@ class _AddEventScreenState extends State<AddEventScreen> {
                               spacing: 8.0,
                               runSpacing: 8.0,
                               children: _selectedImages.map((image) {
-                                return Image.file(
-                                  File(image.path),
-                                  width: 100,
-                                  height: 100,
-                                  fit: BoxFit.cover,
+                                return Stack(
+                                  children: [
+                                    Image.file(
+                                      File(image.path),
+                                      width: 100,
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: IconButton(
+                                        icon: const Icon(Icons.close, color: Colors.red),
+                                        onPressed: () {
+                                          setState(() {
+                                            _selectedImages.remove(image);
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                  ],
                                 );
                               }).toList(),
                             )
@@ -237,6 +284,9 @@ class _AddEventScreenState extends State<AddEventScreen> {
     _maxAttendeesController.dispose();
     _priceController.dispose();
     _locationController.dispose();
+    _allowedUsersController.dispose();
+    _emailController.dispose(); // Novo campo
+    _phoneController.dispose(); // Novo campo
     super.dispose();
   }
 }

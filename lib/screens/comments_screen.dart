@@ -29,7 +29,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         profilePic,
       );
 
-      if (res == 'success') {
+      if (res == 'Sucesso') {
         commentEditingController.clear(); // Limpa apenas em caso de sucesso
         setState(() {
           inputTextColor = Colors.black; // Restaura a cor do texto de entrada para preto após a limpeza
@@ -50,7 +50,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
       appBar: AppBar(
         backgroundColor: Color(0xFF310E3E), // Cor principal
         title: Text(
-          'Comments',
+          'Comentários',
           style: TextStyle(
             fontFamily: 'Arial', // Fonte das letras melhorada
             fontWeight: FontWeight.bold,
@@ -108,7 +108,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                 child: TextField(
                   controller: commentEditingController,
                   decoration: InputDecoration(
-                    hintText: 'Comment as ${user?.username ?? 'Guest'}',
+                    hintText: 'Comentário é ${user?.username ?? 'Guest'}',
                     border: InputBorder.none,
                     hintStyle: TextStyle(
                       color: inputTextColor, // Cor dinâmica da dica de texto

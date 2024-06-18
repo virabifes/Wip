@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       child: const Text(
-                        ' Signup.',
+                        '  Signu.',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                         ),

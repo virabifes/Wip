@@ -3,7 +3,7 @@ import 'package:wip/screens/add_event_screen.dart';
 import 'package:wip/screens/add_post_screen.dart';
 
 class NavigatorEP extends StatefulWidget {
-  const NavigatorEP({super.key});
+  const NavigatorEP({Key? key});
 
   @override
   _NavigatorEPState createState() => _NavigatorEPState();
@@ -26,7 +26,10 @@ class _NavigatorEPState extends State<NavigatorEP> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _pages.elementAt(_selectedIndex),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _pages.elementAt(_selectedIndex),
+        ),
       ),
       bottomNavigationBar: GradientBottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -52,27 +55,34 @@ class GradientBottomNavigationBar extends StatelessWidget {
   final List<BottomNavigationBarItem> items;
 
   const GradientBottomNavigationBar({
-    super.key,
+    Key? key,
     required this.currentIndex,
     required this.onTap,
     required this.items,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Container(
-          height: 60,
-          decoration: const BoxDecoration(
+          height: 55,
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Color.fromARGB(255, 157, 33, 201),
-                Colors.deepPurple,
+                Color.fromARGB(255, 157, 33, 201), // Cor base do gradiente
+                Color.fromARGB(255, 187, 53, 221), // Tom mais claro
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                offset: Offset(0, -3),
+                blurRadius: 8,
+              ),
+            ],
           ),
         ),
         Positioned.fill(
@@ -99,16 +109,31 @@ class GradientBottomNavigationBar extends StatelessWidget {
         children: [
           IconTheme(
             data: IconThemeData(
-              color: isSelected ? Colors.white : Colors.white54,
+              color: isSelected ? Colors.white : Colors.white70,
+              size: 25,
             ),
             child: item.icon,
           ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 3,
+              width: 22,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(1.5),
+              ),
+            ),
           Text(
             item.label ?? '',
-            style: TextStyle(color: isSelected ? Colors.white : Colors.white54),
-          )
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );
   }
 }
+

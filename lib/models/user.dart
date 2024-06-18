@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 
 class User {
   final String email;
@@ -44,43 +44,32 @@ class User {
         "following": following,
       };
 
-  Future<void> updateUsername(String newUsername) async {
+  Future<void> updatePassword(String newPassword, String oldPassword) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .update({'username': newUsername});
-      username = newUsername;
+      await reauthenticateUser(email, oldPassword);
+      await FirebaseAuth.instance.currentUser!.updatePassword(newPassword);
+      print("Senha atualizada com sucesso");
     } catch (error) {
-      // Handle the error if any
-      print("Error updating username: $error");
+      print("Erro ao atualizar a senha: $error");
     }
   }
 
-  Future<void> updateBio(String newBio) async {
+  Future<void> reauthenticateUser(String email, String password) async {
     try {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .update({'bio': newBio});
-      bio = newBio;
+      AuthCredential credential = EmailAuthProvider.credential(email: email, password: password);
+      await FirebaseAuth.instance.currentUser!.reauthenticateWithCredential(credential);
+      print("Re-autenticado com sucesso");
     } catch (error) {
-      // Handle the error if any
-      print("Error updating bio: $error");
+      print("Erro ao re-autenticar: $error");
     }
-  }
-
-  Future<void> updatePassword(String newPassword) async {
-    // Logic to update password
   }
 
   Future<void> deleteAccount() async {
     try {
-      await FirebaseFirestore.instance.collection('users').doc(uid).delete();
-      // Add here logic to delete other user data like posts, comments, etc.
+      await FirebaseFirestore.instance.collection('user').doc(uid).delete();
+      // Adicione aqui lógica para deletar outros dados do usuário como posts, comentários, etc.
     } catch (error) {
-      // Handle the error if any
-      print("Error deleting account: $error");
+      print("Erro ao deletar a conta: $error");
     }
   }
 }
