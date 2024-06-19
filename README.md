@@ -1,17 +1,17 @@
-## WIP
+# WIP
 
-### Projeto Final 12º Ano - Aplicação de Eventos 
+## Projeto Final 12º Ano - Aplicação de Eventos 
 
-# Descrição
+### Descrição
 Este é o projeto final do curso profissional de informática, desenvolvido em Flutter e Firebase. É uma aplicação móvel que permite criar, editar, apagar e inscrever-se em eventos, além de visualizar quem criou os eventos e se são privados ou públicos. A aplicação está funcionando 100% no Android, com alguns erros na versão web, e não foi possível testar para a versão iOS.
 
-# Funcionalidades
+### Funcionalidades
 Criar eventos
 Editar eventos
 Apagar eventos
 Inscrever-se em eventos
 
-# Como Configurar e Exportar
+### Como Configurar e Exportar
 Requisitos
 Flutter instalado (instalação)
 Firebase configurado no projeto (configuração)
@@ -36,18 +36,19 @@ Execute o aplicativo:
 sh
 Copiar código
 flutter run
-Documentação
+
+### Documentação
 Para mais detalhes, consulte a documentação online do Flutter.
 https://docs.flutter.dev/
 
 
-## WIP
+# WIP
 
-### Final Project 12th Grade - Events Application
+## Final Project 12th Grade - Events Application
 Description
 This is the final project for the professional computer science course, developed in Flutter and Firebase. It is a mobile application that allows users to create, edit, delete, and register for events, as well as view who created the events and whether they are private or public. The application is working 100% on Android, with some errors on the web version, and it was not possible to test for the iOS version.
 
-## Features
+### Features
 Create events
 Edit events
 Delete events
@@ -56,7 +57,7 @@ View event details (creator, privacy)
 Screenshots
 
 
-## How to Configure and Export
+### How to Configure and Export
 Requirements
 Flutter installed (installation)
 Firebase configured in the project (configuration)
@@ -81,6 +82,7 @@ Run the application:
 sh
 Copiar código
 flutter run
-Documentation
+
+### Documentation
 For more details, see the Flutter online documentation.
 https://docs.flutter.dev/
