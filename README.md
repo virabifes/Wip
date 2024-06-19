@@ -18,23 +18,22 @@ Firebase configurado no projeto (configuração)
 Passos
 Clone o repositório:
 
-sh
-Copiar código
 git clone https://github.com/virabifes/Wip.git
+
 cd Wip
+
 Instale as dependências:
 
-sh
-Copiar código
 flutter pub get
+
 Configure o Firebase:
 
 Adicione o arquivo google-services.json para Android em android/app.
+
 Adicione o arquivo GoogleService-Info.plist para iOS em ios/Runner.
+
 Execute o aplicativo:
 
-sh
-Copiar código
 flutter run
 
 ### Documentação
@@ -64,23 +63,22 @@ Firebase configured in the project (configuration)
 Steps
 Clone the repository:
 
-sh
-Copiar código
 git clone https://github.com/virabifes/Wip.git
+
 cd Wip
+
 Install dependencies:
 
-sh
-Copiar código
 flutter pub get
+
 Configure Firebase:
 
 Add the google-services.json file for Android in android/app.
+
 Add the GoogleService-Info.plist file for iOS in ios/Runner.
+
 Run the application:
 
-sh
-Copiar código
 flutter run
 
 ### Documentation
